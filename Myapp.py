@@ -276,9 +276,13 @@ def improper_to_mixed(improper_fraction):
 def duplicate_check(expr,exercises):
     # 重复检验
     expr = infix_to_postfix(replace_mixed_numbers(expr))  # 将算式中的带分数替换为假分数 中缀表达式转换为后缀表达式
+    elements = expr.split()  # 使用split方法以空格为分隔符分割字符串
+    expr_list = list(elements)  # 将分割后的元素存储到集合中
     for exercise in exercises:
         exercise = infix_to_postfix(replace_mixed_numbers(exercise))
-        if evaluate_postfix(expr) == evaluate_postfix(exercise): # 如果算式结果相同，检验每一步结果是否相同
+        elements = exercise.split()  # 使用split方法以空格为分隔符分割字符串
+        exercise_list = list(elements)  # 将分割后的元素存储到集合中
+        if evaluate_postfix(expr) == evaluate_postfix(exercise) and expr_list == exercise_list: # 如果算式结果相同,元素相同，检验每一步结果是否相同
             steps1 = duplicate_postfix(expr) # 存储每一步结果
             steps2 = duplicate_postfix(exercise) # 存储每一步结果
             print(steps2)
