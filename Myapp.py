@@ -185,23 +185,65 @@ def evaluate_postfix(postfix_expression):
             operand2 = stack.pop()
             operand1 = stack.pop()
             if char == '+':
-                stack.append(operand1 + operand2)
+                result = operand1 + operand2
+                stack.append(result)
             elif char == '-':
                 if operand2 > operand1: # 出现减数大于被减数时置为-1
                     return -1
-                stack.append(operand1 - operand2)
+                result = operand1 - operand2
+                stack.append(result)
             elif char == '*':
-                stack.append(operand1 * operand2)
+                result = operand1 * operand2
+                stack.append(result)
             elif char == '/':
                 if operand2 == 0:  # 出现除以0的情况置为-1
                     return -1
                 if operand1 == 0:  # 分子为0计算结果为0，不返回分数
-                    stack.append(0)
+                    result = 0
                 else:
-                    stack.append(Fraction(operand1, operand2))
+                    result = Fraction(operand1, operand2)
+                stack.append(result)
 
     return stack.pop()
 
+def duplicate_postfix(postfix_expression):
+    # 计算后缀表达式的每一步的结果
+    stack = []
+    steps = []  # 用于存储每一步的栈结果
+    elements = postfix_expression.split()
+
+    for char in elements:
+        if char.isalnum():
+            # 如果是数字，将其转换为分数并入栈
+            stack.append(Fraction(char))
+        else:
+            operand2 = stack.pop()
+            operand1 = stack.pop()
+            if char == '+':
+                result = operand1 + operand2
+                stack.append(result)
+                steps.append(result)
+            elif char == '-':
+                if operand2 > operand1: # 出现减数大于被减数时置为-1
+                    return -1
+                result = operand1 - operand2
+                stack.append(result)
+                steps.append(result)
+            elif char == '*':
+                result = operand1 * operand2
+                stack.append(result)
+                steps.append(result)
+            elif char == '/':
+                if operand2 == 0:  # 出现除以0的情况置为-1
+                    return -1
+                if operand1 == 0:  # 分子为0计算结果为0，不返回分数
+                    result = 0
+                else:
+                    result = Fraction(operand1, operand2)
+                stack.append(result)
+                steps.append(result)
+
+    return steps
 
 def evaluate_expression(expr):
     # 计算表达式的值
@@ -231,12 +273,29 @@ def improper_to_mixed(improper_fraction):
         return f"{numerator}/{denominator}"
 
 
+def duplicate_check(expr,exercises):
+    # 重复检验
+    expr = infix_to_postfix(replace_mixed_numbers(expr))  # 将算式中的带分数替换为假分数 中缀表达式转换为后缀表达式
+    for exercise in exercises:
+        exercise = infix_to_postfix(replace_mixed_numbers(exercise))
+        if evaluate_postfix(expr) == evaluate_postfix(exercise): # 如果算式结果相同，检验每一步结果是否相同
+            steps1 = duplicate_postfix(expr) # 存储每一步结果
+            steps2 = duplicate_postfix(exercise) # 存储每一步结果
+            print(steps2)
+            print(steps1)
+            if steps1 == steps2:  # 是否每一步结果完全相同
+                return True
+
+    return False
+
+
 def generate_exercises(num,range):
     """生成题目并保存到文件"""
     exercises = set()
     while len(exercises) < num:
         expr = getrandomFormula(range)  # 生成算式
-        if expr not in exercises and evaluate_expression(expr) != -1:  # 算式结果为-1说明出现除以0的情况
+        print(exercises)
+        if not(duplicate_check(expr,exercises)) and evaluate_expression(expr) != -1:  # 算式结果为-1说明出现除以0或出现负数的情况
             exercises.add(expr)
 
     with open('Exercises.txt', 'w') as ex_file, open('Answers.txt', 'w') as ans_file:
