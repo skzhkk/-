@@ -6,6 +6,9 @@ import re
 
 import random
 
+from compute import check
+
+
 def getNumber(maxNum):
     # 随机生成整数或分数
     tag = random.randint(0, 1)
@@ -206,45 +209,6 @@ def evaluate_postfix(postfix_expression):
 
     return stack.pop()
 
-def duplicate_postfix(postfix_expression):
-    # 计算后缀表达式的每一步的结果
-    stack = []
-    steps = []  # 用于存储每一步的栈结果
-    elements = postfix_expression.split()
-
-    for char in elements:
-        if char.isalnum():
-            # 如果是数字，将其转换为分数并入栈
-            stack.append(Fraction(char))
-        else:
-            operand2 = stack.pop()
-            operand1 = stack.pop()
-            if char == '+':
-                result = operand1 + operand2
-                stack.append(result)
-                steps.append(result)
-            elif char == '-':
-                if operand2 > operand1: # 出现减数大于被减数时置为-1
-                    return -1
-                result = operand1 - operand2
-                stack.append(result)
-                steps.append(result)
-            elif char == '*':
-                result = operand1 * operand2
-                stack.append(result)
-                steps.append(result)
-            elif char == '/':
-                if operand2 == 0:  # 出现除以0的情况置为-1
-                    return -1
-                if operand1 == 0:  # 分子为0计算结果为0，不返回分数
-                    result = 0
-                else:
-                    result = Fraction(operand1, operand2)
-                stack.append(result)
-                steps.append(result)
-
-    return steps
-
 def evaluate_expression(expr):
     # 计算表达式的值
     expr = replace_mixed_numbers(expr)  # 将算式中的带分数替换为假分数
@@ -257,7 +221,7 @@ def evaluate_expression(expr):
 
 def improper_to_mixed(improper_fraction):
     # 计算带分数的整数部分
-    whole = improper_fraction // improper_fraction.denominator
+    whole = improper_fraction.numerator // improper_fraction.denominator
     # 计算带分数的分子
     numerator = improper_fraction.numerator % improper_fraction.denominator
     denominator = improper_fraction.denominator
@@ -275,36 +239,31 @@ def improper_to_mixed(improper_fraction):
 
 def duplicate_check(expr,exercises):
     # 重复检验
-    expr = infix_to_postfix(replace_mixed_numbers(expr))  # 将算式中的带分数替换为假分数 中缀表达式转换为后缀表达式
-    elements = expr.split()  # 使用split方法以空格为分隔符分割字符串
-    expr_list = list(elements)  # 将分割后的元素存储到集合中
+    expr_new = infix_to_postfix(replace_mixed_numbers(expr))  # 将算式中的带分数替换为假分数 中缀表达式转换为后缀表达式
+    elements = expr_new.split()  # 使用split方法以空格为分隔符分割字符串
+    expr_list_new = list(elements)  # 将分割后的元素存储到集合中
     for exercise in exercises:
-        exercise = infix_to_postfix(replace_mixed_numbers(exercise))
-        elements = exercise.split()  # 使用split方法以空格为分隔符分割字符串
-        exercise_list = list(elements)  # 将分割后的元素存储到集合中
-        if evaluate_postfix(expr) == evaluate_postfix(exercise) and expr_list == exercise_list: # 如果算式结果相同,元素相同，检验每一步结果是否相同
-            steps1 = duplicate_postfix(expr) # 存储每一步结果
-            steps2 = duplicate_postfix(exercise) # 存储每一步结果
-            print(steps2)
-            print(steps1)
-            if steps1 == steps2:  # 是否每一步结果完全相同
+        exercise_new = infix_to_postfix(replace_mixed_numbers(exercise))
+        elements = exercise_new.split()  # 使用split方法以空格为分隔符分割字符串
+        exercise_list_new = list(elements)  # 将分割后的元素存储到集合中
+        if evaluate_postfix(expr_new) == evaluate_postfix(exercise_new) and expr_list_new == exercise_list_new:  # 如果算式结果相同,元素相同，检验每一步结果是否相同
+            if check(expr,exercise) :  # 是否相同
                 return True
 
     return False
 
 
 def generate_exercises(num,range):
-    """生成题目并保存到文件"""
+    # 生成题目并保存到文件
     exercises = set()
     while len(exercises) < num:
         expr = getrandomFormula(range)  # 生成算式
-        print(exercises)
-        if not(duplicate_check(expr,exercises)) and evaluate_expression(expr) != -1:  # 算式结果为-1说明出现除以0或出现负数的情况
+        print(expr)
+        if not(duplicate_check(expr,exercises)) and evaluate_expression(expr) !='-1':  # 算式结果为-1说明出现除以0或出现负数的情况
             exercises.add(expr)
 
     with open('Exercises.txt', 'w') as ex_file, open('Answers.txt', 'w') as ans_file:
         for expr in exercises:
-            print(expr)
             answer = evaluate_expression(expr)
             ex_file.write(f"{expr} =\n")
             ans_file.write(f"{answer}\n")
